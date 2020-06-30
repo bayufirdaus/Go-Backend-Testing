@@ -200,46 +200,6 @@ func getPost(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getPut(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-
-	var publishers []Publisher
-
-	params := mux.Vars(r)
-
-	sql := `SELECT
-				publisher_id,
-				IFNULL(publisher_name,''),
-				IFNULL(input_date,'') input_date, 
-				IFNULL(last_update,'') last_update
-			FROM publisher WHERE publisher_id = ?`
-
-	result, err := db.Query(sql, params["id"])
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	defer result.Close()
-
-	var publisher Publisher
-
-	for result.Next() {
-		err := result.Scan(&publisher.ID, &publisher.Name,
-			&publisher.Date, &publisher.Update)
-
-		if err != nil {
-			panic(err.Error())
-		}
-
-		publishers = append(publishers, publisher)
-	}
-
-	json.NewEncoder(w).Encode(publishers)
-
-}
-
 // Main function
 func main() {
 
@@ -260,7 +220,6 @@ func main() {
 	r.HandleFunc("/publisher/{id}", updatePublisher).Methods("PUT")
 	r.HandleFunc("/publisher/{id}", deletePublisher).Methods("DELETE")
 	r.HandleFunc("/publisher/", getPost).Methods("POST", "GET")
-	r.HandleFunc("/publisher/{id}", getPut).Methods("PUT", "GET")
 
 	// Start server
 	log.Fatal(http.ListenAndServe(":8181", r))
